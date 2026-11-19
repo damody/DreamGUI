@@ -425,14 +425,6 @@ after 3 for 2.1.0 -- so the engine never takes 1.0.0 for the older of the two.
 
 ### Changed
 
-- **A released GPU resource is held twelve render frames instead of three.** `FDreamUIDeferredRelease` kept what a
-  draw may still be reading for three frames, while a canvas keeps the textures of its own draws for eight: two
-  windows for one hazard, so at least one of them was wrong. Twelve is a diagnostic value, not the answer — what the
-  queue has to outlive is "the GPU has not run that command list yet", and a frame counter does not measure that (a
-  hitch, the RHI thread running ahead or a blocked present all advance frames while the GPU stands still). The fix
-  this is a step towards holds until the RHI frame fence of the handing-over frame has completed and puts the
-  canvas's own window on that same criterion.
-
 - **`Center` where the enum says `Middle` names the right word.** A text's own vertical alignment says `Middle` and a
   slot's says `Center`; DUI4005 for either spelling in the other's place now ends `(did you mean 'Middle'?)` (or
   `'Center'`). The worked example in the manual compiles and lays out as written, and the language pages say which way
