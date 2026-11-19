@@ -1,6 +1,7 @@
 // Copyright 2026-Present TypeDreamMoon. All Rights Reserved.
 
 #include "DreamUIRender/DreamUICompositor.h"
+#include "DreamUIRender/DreamUIDeferredRelease.h"
 
 #include "CommonRenderResources.h"
 #include "GlobalShader.h"
@@ -319,6 +320,8 @@ FRDGTextureRef FDreamUICompositeStack::CopyFrom(const FFrame& InFrame, const FIn
 void FDreamUICompositeStack::PopAndComposite()
 {
 	FFrame Top = Frames.Pop();
+	// Back to the pool only after the frames that may still read it (FDreamUIDeferredRelease).
+	FDreamUIDeferredRelease::Hold(Top.Pooled);
 	FFrame& Parent = Frames.Last();
 	const FDreamUICompositeDesc& Desc = Top.Desc;
 	FRDGTextureRef Underlay = nullptr;

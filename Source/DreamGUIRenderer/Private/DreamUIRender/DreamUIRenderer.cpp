@@ -5,6 +5,7 @@
 #include "DreamUIRender/DreamUICompositor.h"
 #include "DreamUIRender/DreamUIShaders.h"
 #include "DreamUIRender/DreamUIBaseShaders.h"
+#include "DreamUIRender/DreamUIDeferredRelease.h"
 #include "Materials/Material.h"
 #include "Materials/MaterialInterface.h"
 #include "Materials/MaterialRenderProxy.h"
@@ -243,6 +244,8 @@ void FDreamUIRenderer::PreRenderViewFamily_RenderThread(FRDGBuilder& GraphBuilde
 }
 void FDreamUIRenderer::PostRenderView_RenderThread(FRDGBuilder& GraphBuilder, FSceneView& InView)
 {
+	// What DreamGUI let go of DelayFrames render frames ago or earlier is released now (FDreamUIDeferredRelease).
+	FDreamUIDeferredRelease::Tick_RenderThread();
 #if WITH_EDITOR
 	if (ViewsDrawnAfterTonemap.RemoveSwap(&InView) > 0)
 	{
@@ -1225,6 +1228,8 @@ bool FDreamUIRenderer::PrepareTargets_RenderThread(FRDGBuilder& GraphBuilder, FS
 					}
 				);
 			}
+			// Draws recorded this frame still bind it: let go of it a few frames from now (FDreamUIDeferredRelease).
+			FDreamUIDeferredRelease::Hold(CanvasTargetTexture);
 			CanvasTargetTexture = nullptr;
 
 			ViewRect = FIntRect(0, 0, ScreenColorRenderTargetTexture->GetSizeXYZ().X, ScreenColorRenderTargetTexture->GetSizeXYZ().Y);

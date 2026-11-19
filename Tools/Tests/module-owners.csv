@@ -529,3 +529,5 @@ Source/DreamGUI/Public/Utils/sdf/sdf.h,DreamGUI,utilities
 Source/DreamGUIRenderer/Public/DreamUIRender/DreamUIHDR.h,DreamGUIRenderer,HDR display transfer
 Source/DreamGUIRenderer/Private/DreamUIRender/DreamUIHDR.cpp,DreamGUIRenderer,HDR display transfer
 Source/DreamGUITests/Private/RHI/DreamHDRPixelAutomationTests.cpp,DreamGUITests,HDR display pixel acceptance
+Source/DreamGUIRenderer/Public/DreamUIRender/DreamUIDeferredRelease.h,DreamGUIRenderer,"GPU resources kept a few render frames before release (RHI, no widgets)"
+Source/DreamGUIRenderer/Private/DreamUIRender/DreamUIDeferredRelease.cpp,DreamGUIRenderer,"GPU resources kept a few render frames before release (RHI, no widgets)"

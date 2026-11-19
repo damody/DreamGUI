@@ -590,6 +590,16 @@ after 3 for 2.1.0 -- so the engine never takes 1.0.0 for the older of the two.
 
 ### Fixed
 
+- **A GPU resource DreamGUI replaces or frees is kept a few render frames before it is really released, so a draw the
+  GPU has not run yet no longer reads freed memory.** Three times a resource let go of in one frame was still sampled by
+  draws recorded in it -- the font atlas repacked, a data texture grown past its rows, a canvas target handed back to the
+  pool -- and each was a GPU page fault inside the view extension, minutes into a session that had opened and replaced
+  many textures. A material proxy was deleted the same way while a recorded graph could still read its uniform buffer.
+  `FDreamUIDeferredRelease` now takes each of them (`Hold` for a texture, a buffer or a pooled target, `Later` for a
+  delete), releases them `DelayFrames` render frames later from the view extension, and `DreamGUI.LogDeferredRelease`
+  says how many wait. A data texture that grows also waits for an asynchronously executing graph before its reference is
+  pointed at the new texture.
+
 - **A widget made in a dedicated server's world is reported once, as a warning that says what to do.** A dedicated
   server has no UI manager by design, and every widget registered there raised an ensure -- a stack walk and a pause each
   time, and with a `Create Dream Widget` in a player controller's `BeginPlay`, one for every player who joined (the server
