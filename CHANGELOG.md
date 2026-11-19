@@ -13,6 +13,12 @@ after 3 for 2.1.0 -- so the engine never takes 1.0.0 for the older of the two.
 
 ### New
 
+- **Every built-in draw names the textures it binds in the GPU breadcrumbs.** A GPU page fault inside the UI used to
+  say only that it happened in a DreamGUI draw; the crash report now carries the main, font, widget-data, clip-data,
+  rect-block, paint and first mask texture of that draw by name, or `fallback` where the draw bound none, so DRED and
+  Aftermath answer which texture was being read. Recorded only where breadcrumbs are (`-gpucrashdebugging`,
+  `r.GPUCrashDebugging`).
+
 - HDR display targets composite screen UI in linear light at the display paper white, then encode to PQ/Rec2020 or scRGB. SDR and linear capture targets retain their existing rendering path.
 
 - Navigation indicators expose `GetAnimDuration` / `SetAnimDuration`. Zero snaps native focus movement and fades immediately, including an in-progress transition, for host accessibility policies.

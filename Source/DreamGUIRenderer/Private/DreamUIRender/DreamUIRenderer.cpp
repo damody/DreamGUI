@@ -6,6 +6,8 @@
 #include "DreamUIRender/DreamUIShaders.h"
 #include "DreamUIRender/DreamUIBaseShaders.h"
 #include "DreamUIRender/DreamUIDeferredRelease.h"
+#include "RHITextureReference.h"
+#include "RHIBreadcrumbs.h"
 #include "Materials/Material.h"
 #include "Materials/MaterialInterface.h"
 #include "Materials/MaterialRenderProxy.h"
@@ -971,6 +973,26 @@ void FDreamUIRenderer::DrawBuiltInBatch(FRHICommandList& RHICmdList, FGraphicsPi
 	{
 		return InReference != nullptr ? static_cast<FRHITexture*>(InReference) : Fallback->TextureRHI.GetReference();
 	};
+
+	// Every built-in draw names the textures it binds in the GPU breadcrumbs, so a page fault that DRED or Aftermath
+	// puts on one of these draws says which texture it was reading -- the one question a UI page fault leaves open.
+	// Only recorded where breadcrumbs are (-gpucrashdebugging, r.GPUCrashDebugging).
+	auto Named = [](FRHITextureReference* InReference) -> FName
+	{
+		FRHITexture* Texture = InReference != nullptr ? InReference->GetReferencedTexture() : nullptr;
+		return Texture != nullptr ? Texture->GetName() : FName(TEXT("fallback"));
+	};
+	// A breadcrumb keeps 128 characters (FRHIBreadcrumb::MaxLength): three nested ones, so no texture name is cut off.
+	RHI_BREADCRUMB_EVENT_F(RHICmdList, "DreamUIDraw", "DreamUIDraw main=%s font=%s",
+		RHI_BREADCRUMB_FIELD("Main", Named(Params.MainTextureRHI.GetReference())),
+		RHI_BREADCRUMB_FIELD("Font", Named(Params.FontTextureRHI.GetReference())));
+	RHI_BREADCRUMB_EVENT_F(RHICmdList, "DreamUIData", "DreamUIData widget=%s clip=%s",
+		RHI_BREADCRUMB_FIELD("WidgetData", Named(Params.WidgetDataTextureRHI.GetReference())),
+		RHI_BREADCRUMB_FIELD("ClipData", Named(Params.ClipDataTextureRHI.GetReference())));
+	RHI_BREADCRUMB_EVENT_F(RHICmdList, "DreamUIMore", "DreamUIMore rect=%s paint=%s mask0=%s",
+		RHI_BREADCRUMB_FIELD("RectBlock", Named(Params.RectBlockDataRHI.GetReference())),
+		RHI_BREADCRUMB_FIELD("Paint", Named(Params.PaintDataRHI.GetReference())),
+		RHI_BREADCRUMB_FIELD("Mask0", Named(Params.MaskTexture0RHI.GetReference())));
 
 	// Model-view-projection in double precision, demoted once.
 	const FMatrix ViewProjection = View.ViewMatrices.GetWorldToClip();
